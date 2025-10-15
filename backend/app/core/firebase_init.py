@@ -8,7 +8,7 @@ def init_firebase():
         firebase_admin.initialize_app(cred)
 
 firebaseConfig = {
-    "apiKey": "*************",
+    "apiKey": "",
     "authDomain": "scholarmind-99228.firebaseapp.com",
     "projectId": "scholarmind-99228",
     "storageBucket": "scholarmind-99228.firebasestorage.app",
