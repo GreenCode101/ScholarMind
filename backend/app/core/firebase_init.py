@@ -1,6 +1,9 @@
 import firebase_admin
 from firebase_admin import credentials
 import pyrebase
+from dotenv import dotenv_values
+env_values = dotenv_values('/.env')
+api_key = env_values['GOOGLE_API_KEY']
 
 def init_firebase():
     if not firebase_admin._apps:
@@ -8,7 +11,7 @@ def init_firebase():
         firebase_admin.initialize_app(cred)
 
 firebaseConfig = {
-    "apiKey": "",
+    "apiKey": api_key,
     "authDomain": "scholarmind-99228.firebaseapp.com",
     "projectId": "scholarmind-99228",
     "storageBucket": "scholarmind-99228.firebasestorage.app",
