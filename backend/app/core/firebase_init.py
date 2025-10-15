@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import credentials
 import pyrebase
 from dotenv import dotenv_values
-env_values = dotenv_values('/.env')
+env_values = dotenv_values('.env')
 api_key = env_values['GOOGLE_API_KEY']
 
 def init_firebase():
