@@ -5,6 +5,7 @@ description = "An AI-powered platform to assist students with their academic nee
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "docling>=2.58.0",
     "fastapi>=0.119.0",
     "firebase-admin>=7.1.0",
     "pydantic[email]>=2.12.0",
