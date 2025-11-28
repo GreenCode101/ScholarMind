@@ -1,5 +1,4 @@
 import logging
-from contextvars import ContextVar
 from enum import StrEnum
 from app.core.context import request_id_ctx
 
