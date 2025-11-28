@@ -10,21 +10,21 @@ from app.schemas.response_models import (
 from app.services.keycloak_service import get_admin_token
 from app.services.secure_routes import get_current_user
 from app.core.rate_limiter import limiter
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 import requests
 import logging
+import os
 
 logger = logging.getLogger("app.auth")
-
-env_values = dotenv_values(".env")
-
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-KEYCLOAK_URL = env_values["KEYCLOAK_URL"]
-REALM = env_values["KEYCLOAK_REALM"]
-CLIENT_ID = env_values["AUTH_CLIENT_ID"]
-CLIENT_SECRET = env_values["AUTH_CLIENT_SECRET"]
+load_dotenv()
+
+KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL")
+REALM = os.environ.get("KEYCLOAK_REALM")
+CLIENT_ID = os.environ.get("AUTH_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("AUTH_CLIENT_SECRET")
 
 
 @router.post(
