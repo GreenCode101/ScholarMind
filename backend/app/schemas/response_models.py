@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class LoginSuccess(BaseModel):
     access_token: str
     expires_in: int
@@ -15,9 +16,10 @@ class LoginSuccess(BaseModel):
                 "expires_in": 3600,
                 "refresh_token": "*************",
                 "refresh_expires_in": 7200,
-                "token_type": "Bearer"
+                "token_type": "Bearer",
             }
         }
+
 
 class LoginError(BaseModel):
     message: str
@@ -28,6 +30,7 @@ class LoginError(BaseModel):
                 "message": "Example error message during login",
             }
         }
+
 
 class SignupSuccess(BaseModel):
     message: str
@@ -40,6 +43,7 @@ class SignupSuccess(BaseModel):
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
             }
         }
+
 
 class SignupError(BaseModel):
     message: str
