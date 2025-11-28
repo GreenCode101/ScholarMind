@@ -45,7 +45,7 @@ jobs:
       - name: Run Tests
         run: pytest backend/app/tests/ --durations=0 -v
         env:
-          KEYCLOAK_URL: "http://your-keycloak-url"
+          KEYCLOAK_URL: "http://localhost:8080"
           KEYCLOAK_REALM: "master"
           AUTH_CLIENT_ID: "service-auth"
           AUTH_CLIENT_SECRET: ${{ secrets.AUTH_CLIENT_SECRET }}
