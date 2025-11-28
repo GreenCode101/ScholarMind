@@ -27,10 +27,16 @@ jobs:
           pip install pytest black ruff
 
       - name: Check Formatting
-        run: black --check .
+        run: black --check backend/
 
       - name: Lint Code
-        run: ruff check . --fix
+        run: ruff check backend/ --fix
+
+      - name: Lint Formatting
+        run: ruff format backend/
+
+      - name: Type Check with Pyright
+        run: pyright backend
 
       - name: Run Tests
-        run: pytest -v
+        run: pytest backend/app/tests/ --durations=0 -v
