@@ -2,8 +2,14 @@ name: "Deploy the Backend"
 
 on: 
   push:
-    paths:
-      - "backend/**"
+    branches:
+      - master
+    paths-ignore:
+      - "Docs/**"
+      - "Contribution/**"
+      - ".github/**"
+      - ".gitignore"
+      - "README.md"
 
 
 jobs:
