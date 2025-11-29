@@ -12,28 +12,51 @@ on:
       - "README.md"
 
 
+env:
+  IMAGE_NAME: scholarmind-backend
+  REGISTRY: docker.io
+  SERVICE: 1e483560-62ff-4cff-bc66-e0758daf0658
+  ENVIRONMENT: 6d2cdaa1-97a2-4150-a79c-0ecd8834a43a
+
 jobs:
-  deploy:
-    name: "Deploy"
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to DockerHub
-        uses: docker/login-action@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
-        run: docker build -t scholarmind_backend:latest ./backend
+      - name: Get current time for version tag
+        id: date
+        run: echo "TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Push Docker image
-        run: docker push abdualrimali/my-vault:latest
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.date.outputs.TAG }}
+
+  deploy-to-railway:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Railway
+        run: |
+          railway up \
+            --service=SERVICE \
+            --environment=ENVIRONMENT || true
