@@ -1,8 +1,7 @@
-AI\venv
+AI/venv
 AI\similarity_search_pipeline\app.env
-AI\notebooks
+AI/Notebooks
 AI\similarity_search_pipeline\__pycache__
-AI\prompts
-backend
-docs
-frontend
+AI/Prompts
+Backend
+Frontend
