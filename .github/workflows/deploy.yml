@@ -26,10 +26,10 @@ jobs:
 
       - name: Check if secret exists
         run: |
-          if [ -z "${{ secrets.TOKEN_GITHUB }}" ]; then
-            echo "TOKEN_GITHUB is empty!"
+          if [ -z "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "GITHUB_TOKEN is empty!"
           else
-            echo "TOKEN_GITHUB is set!"
+            echo "GITHUB_TOKEN is set!"
           fi
 
       - name: Log in to GHCR
@@ -37,7 +37,7 @@ jobs:
         with:
           registry: ghcr.io
           username: abdualrimali
-          password: ${{ secrets.TOKEN_GITHUB }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
         run: |
