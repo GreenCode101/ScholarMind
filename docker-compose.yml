@@ -56,7 +56,7 @@ services:
     container_name: backend_app
     build: 
       context: "./backend"
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
