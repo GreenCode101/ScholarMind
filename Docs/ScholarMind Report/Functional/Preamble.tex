@@ -11,6 +11,15 @@
 
 \renewcommand\contentsname{} % remove the "Chapter #" thing
 
+% Remove "List of Tables" title + vertical space
+\renewcommand{\listtablename}{}
+\setlength{\cftbeforelottitleskip}{0pt} % remove space before title
+\setlength{\cftafterlottitleskip}{0pt}  % remove space after title
+\makeatletter
+\renewcommand{\l@table}{\@dottedtocline{1}{1em}{3em}}
+\makeatother
+
+
 \renewcommand{\thechapter}{\arabic{chapter}.} % Change the dot point for chapters in Table of contents
 \renewcommand{\thesection}{\arabic{chapter}.\arabic{section}}
 
