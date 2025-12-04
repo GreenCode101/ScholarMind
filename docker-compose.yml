@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - keycloak-network
+      - app-network
 
   # Keycloak Authentication Server
   # - Provides OAuth2/OpenID Connect functionality
@@ -39,9 +39,9 @@ services:
       KC_DB_PASSWORD: keycloak_password
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin_password
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
     command:
       - start-dev
     ports:
@@ -50,29 +50,46 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - keycloak-network
+      - app-network
 
   backend:
     container_name: backend_app
-    build: 
-      context: "./backend"
-      dockerfile: Dockerfile
+    image: ghcr.io/greencode101/scholarmind/backend:latest
     depends_on:
       postgres:
         condition: service_healthy
       keycloak:
         condition: service_started
     environment:
-      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_URL: "${KEYCLOAK_URL}"
+      KEYCLOAK_REALM: "${KEYCLOAK_REALM}"
+      AUTH_CLIENT_ID: "${AUTH_CLIENT_ID}"
+      AUTH_CLIENT_SECRET: "${AUTH_CLIENT_SECRET}"
+
     networks:
-      - keycloak-network
+      - app-network
     ports:
       - "8000:8000"
-
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    command:
+      - "http"
+      - "backend:8000"
+    environment:
+      NGROK_AUTHTOKEN: "${NGROK_AUTHTOKEN}"
+    networks:
+      - app-network
+    ports:
+      - 4040:4040
+      
 volumes:
   postgres_data:
     name: keycloak_postgres_data
 
 networks:
-  keycloak-network:
-    name: keycloak-network
+  app-network:
+    name: app-network
