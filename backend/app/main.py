@@ -1,6 +1,6 @@
 import logging
 from fastapi import FastAPI
-from app.routers import auth, user
+from app.routers import auth, user, doc
 from app.core.security import setup_middlewares
 from app.core.logger import configure_logging, LogLevels
 from app.core.rate_limiter import limiter
@@ -24,3 +24,4 @@ setup_middlewares(app)
 
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(doc.router)
