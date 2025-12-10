@@ -10,8 +10,6 @@ from docling.document_converter import DocumentConverter, PdfFormatOption
 from pathlib import Path
 from docling_core.types.doc import PictureItem
 
-source = "https://arxiv.org/pdf/2408.09869"  # file path or URL
-
 
 class ArixParse:
     def __init__(self, pdf_path: str):
@@ -69,5 +67,3 @@ def runPDF(pdf: str):
         f.write(doc.export_to_markdown())
     save_extracted_images(doc, output_dir / "extracted_images")
 
-if __name__ == "__main__":
-    runPDF(source)
