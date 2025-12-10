@@ -7,9 +7,24 @@ from docling.datamodel.pipeline_options import (
     PdfPipelineOptions
 )
 from pathlib import Path
+from werkzeug.utils import secure_filename
 import os
 
 SAFE_BASE_DIR = Path("output").resolve()
+
+def is_safe_path(base_dir: Path, path: Path) -> bool:
+    """
+    Check if `path` is strictly contained within `base_dir` after resolving both.
+    """
+    try:
+        return path.is_relative_to(base_dir)
+    except AttributeError:
+        return str(path).startswith(str(base_dir))
+
+
+def safe_filename(filename: str) -> str:
+    # Only get the basename, remove any remaining path separators, keep ascii chars only
+    return os.path.basename(filename).replace("/", "_").replace("\\", "_")
 
 class ArixParse:
     def __init__(self, pdf_path: str):
@@ -39,9 +54,10 @@ class ArixParse:
 
 
 def save_extracted_images(doc, output_folder: str):
-    output_path = Path(output_folder).resolve()
+    output_folder_name = safe_filename(output_folder)
+    output_path = (SAFE_BASE_DIR / output_folder_name).resolve()
 
-    if not output_path.is_relative_to(SAFE_BASE_DIR):
+    if not is_safe_path(SAFE_BASE_DIR, output_path):
         raise ValueError(f"Security Warning: Attempted to save outside '{SAFE_BASE_DIR}'")
     
     output_path.mkdir(parents=True, exist_ok=True)
@@ -64,9 +80,9 @@ def save_extracted_images(doc, output_folder: str):
 
 def runPDF(pdf: str):
     doc = ArixParse(pdf_path=pdf).parse()
-    fileName = Path(pdf).name
-    output_dir = (Path("output") / fileName).resolve()
 
+    fileName = secure_filename(Path(pdf).name)
+    output_dir = (SAFE_BASE_DIR / fileName).resolve()
     if not output_dir.is_relative_to(SAFE_BASE_DIR):
         raise ValueError(f"Security Warning: Attempted to save outside '{SAFE_BASE_DIR}'")
     
