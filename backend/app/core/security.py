@@ -1,13 +1,30 @@
-from fastapi import Request, Response
+from fastapi import Request, Response, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.cors import CORSMiddleware
 from app.core.context import request_id_ctx
+from app.services.keycloak_service import verify_token
 import uuid
 import logging
 import time
 
 
-logger = logging.getLogger("app.middleware")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+logger = logging.getLogger("app.core.security")
 REQUEST_ID_HEADER = "X-Request-ID"
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    # oauth2_scheme automatically extracts the token from the "Authorization: Bearer ..." header.
+    # It removes the "Bearer " prefix for you.
+    try:
+        payload = verify_token(token)
+        return payload
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def setup_middlewares(app):
