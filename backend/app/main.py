@@ -1,3 +1,8 @@
+# import sys
+# import os
+
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import logging
 from fastapi import FastAPI
 from app.routers import auth, user, doc
@@ -25,3 +30,7 @@ setup_middlewares(app)
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(doc.router)
+
+# if(__name__ == "__main__"):
+#     import uvicorn
+#     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
