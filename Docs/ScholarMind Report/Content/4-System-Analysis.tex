@@ -1,6 +1,62 @@
-\hiddenchapter {{\large{S}YSTEM REQUIREMENTS }}
-\ChapterTitle [\thechapter]{SYSTEM  REQUIREMENT }
+\hiddenchapter {{\large{S}YSTEM ANALYSIS }}
+\ChapterTitle [\thechapter]{SYSTEM  ANALYSIS }
 
-% Add content here
+\hiddensection{{\large{S}}YSTEM FUNCTIONAL REQUIREMENTS}
+\SectionTitle{\thesection}{SYSTEM FUNCTIONAL REQUIREMENTS}
+ 
+ \subsection{Authentication}
+   \begin{itemize}
+       \item R1. The user shall be able to log in or sign up.
+   \end{itemize}
+
+\subsection{Query Input \& Document Management}
+   \begin{itemize}
+       \item R2. The user shall be able to input keywords, topics, or research questions.
+       \item R3. The user shall submit the input using a "Send" button.
+       \item R4. The system shall display a ranked list of similar documents with metadata (title, author, etc.).
+       \item R5. The user shall be able to navigate the list or skip it entirely.
+       \item R6. The user shall be able to discard documents, leaving at least one selected.
+       \item R7. The user shall be able to upload a PDF to customize the document set.
+       \item R8. The user shall be able to save the selected documents and proceed.
+   \end{itemize}
+
+\subsection{Initial Chatbot}
+   \begin{itemize}
+       \item R: Once the user saved the documents, the user shall see a chatbot interface to chat about the scientific terminology
+       \item R: The User shall see buttons representing the actions such as (Chat    Generate Knowledge Graph)
+   \end{itemize}
+
+\subsection{Knowledge Graph}
+   \begin{itemize}
+       \item R9. The system shall generate a knowledge graph where the user’s topic is the highlighted main node.
+       \item R10. Hovering an ancestor node shall highlight it and its relation to the main topic.
+       \item R11. Hovering a descendant node shall highlight it and its dependency on the main topic.
+       \item R12. Other nodes shall be displayed farther away to indicate looser relations.
+       \item R13. The user shall be able to click any node to open detailed content.
+   \end{itemize}
+
+\subsection{Explanation \& Chat}
+   \begin{itemize}
+       \item R14. When a node is clicked, the system shall generate a scientific explanation in a chat interface.
+       \item R15. The generated explanation shall include backlinks to all ancestor and descendant nodes relevant to it.
+       \item R16. The chat shall be saved automatically.
+   \end{itemize}
+
+
+\subsection{Side Notebook}
+\begin{itemize}
+    \item    R17. The user shall be able to open an optional side notebook alongside the chat.
+    \item    R18. The user shall be able to add selected chat content to the notebook in structured format.
+    \item    R19. The user shall be able to request “Summarize and Add to Notebook.”
+    \item    R20. The user shall be able to freely edit the notebook.
+    \item    R21. The user shall enable or disable automatic backlink generation in the notebook.
+\end{itemize}
+
+
+\subsection{Project Management}
+   \begin{itemize}
+       \item R22. Graphs, chats, and notebooks shall be stored together as a research project with an editable name.
+       \item R23. The user shall be able to track references for each generated explanation.
+   \end{itemize}
 
 \clearpage
