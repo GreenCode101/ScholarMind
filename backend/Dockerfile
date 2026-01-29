@@ -1,4 +1,5 @@
-FROM python:3.13
+FROM pytorch/pytorch:2.9.1-cuda13.0-cudnn9-devel
+# FROM python:3.13
 
 WORKDIR /app
 
