@@ -1,5 +1,4 @@
 venv
-similarity_search_pipeline\app.env
-Notebooks
-similarity_search_pipeline\__pycache__
+notebooks
+__pycache__
 prompts
