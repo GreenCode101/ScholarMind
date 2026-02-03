@@ -9,7 +9,7 @@ from pathlib import Path
 
 class ArixParse:
     def __init__(self, pdf_path: str):
-        self.path = pdf_path
+        self.path =  pdf_path
 
         accelerator_options = AcceleratorOptions(
             num_threads=8, device=AcceleratorDevice.CUDA
