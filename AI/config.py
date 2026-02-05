@@ -8,6 +8,7 @@ class Settings():
     COLLECTION_NAME: str = "documents"
     VECTOR_DB_PATH= Path("data/vector_db.faiss")
     K_BEST_RESULT = 5
+    SUMMARIZER_MODEL = "gemini-3-flash-preview"
 
     class Config:
         env_file = "app.env"
