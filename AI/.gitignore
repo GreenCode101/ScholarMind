@@ -1,4 +1,5 @@
 venv
 notebooks
 __pycache__
-prompts
+prompts/__pycache__
+app.env
