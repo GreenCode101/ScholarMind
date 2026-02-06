@@ -1,7 +1,7 @@
-from core.pdf_parser import parsePDF
-from core.text_splitter import split_text
-from core.vector_db import VectorDB
-from core.embedding import get_embedding_model
+from AI.similarity_search_pipeline.pdf_parser import parsePDF
+from AI.similarity_search_pipeline.text_splitter import split_text
+from AI.similarity_search_pipeline.vector_db import VectorDB
+from AI.similarity_search_pipeline.embedding import get_embedding_model
 from config import settings
 import logging
 
