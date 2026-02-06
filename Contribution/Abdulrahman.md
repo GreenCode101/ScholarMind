@@ -31,3 +31,9 @@ General role: Code Maintainer, Backend Lead
 - Implemented API endpoint for PDF Upload.
 - Integrated all docker containers into one single domain interface with ngrok and nginx.
 - Wrote backend design document and literature review background with IEEE refferences.
+
+
+# Abdulrahman (Feb 2026)
+
+## Backend
+- Added additional API for Authentications such as: Logout, Password Update, Token Refresh (PR #55)
