@@ -19,3 +19,5 @@ async def get_user_info(user=Depends(get_current_user)):
         "name": user.get("name"),
         "realm_roles": user.get("realm_access", {}).get("roles", []),
     }
+
+# Additional API endpoints for user info, will be added soon
