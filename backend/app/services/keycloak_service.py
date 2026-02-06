@@ -1,86 +1,146 @@
-from dotenv import load_dotenv
-import requests
-import os
 from fastapi import HTTPException, status
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError
-
-load_dotenv()
-
-KEYCLOAK_URL = os.environ.get("KEYCLOAK_URL")
-REALM = os.environ.get("KEYCLOAK_REALM")
-CLIENT_ID = os.environ.get("AUTH_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("AUTH_CLIENT_SECRET")
-
-JWKS_CACHE = None
+from app.core.config import kcsettings
+import httpx
 
 
-def get_admin_token():
-    """Get admin access token from Keycloak"""
-    token_url = f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/token"
+class KeycloakAdmin:
+    def __init__(self):
+        self.JWKS_CACHE = None
+        self.TOKEN_CACHE = None
+    
+    async def __get_jwks(self):
+        if self.JWKS_CACHE:
+            return self.JWKS_CACHE
+        async with httpx.AsyncClient() as client:
+            response = await client.get(kcsettings.KEYCLOAK_JWK_URL)
+        self.JWKS_CACHE = response.json()
+        return self.JWKS_CACHE
+    
+    async def verify_token(self, token: str):
+        """Verifies a JWT access token from Keycloak"""
+        jwks = await self.__get_jwks()
+        try:
+            unverified_header = jwt.get_unverified_header(token)
+        except JWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token header"
+            )
 
-    data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "grant_type": "password",
-        "username": "admin",
-        "password": "admin_password",
-    }
+        # Find the public key with the same 'kid'
+        key = None
+        for k in jwks["keys"]:
+            if k["kid"] == unverified_header["kid"]:
+                key = k
+                break
 
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = requests.post(token_url, data=data, headers=headers)
+        if not key:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Public key not found"
+            )
 
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Failed to get admin token")
+        try:
+            payload = jwt.decode(
+                token,
+                key,
+                algorithms=["RS256"],
+                audience=kcsettings.KEYCLOAK_CLIENT_ID,
+                options={"verify_aud": False},
+            )
+            return payload  # contains user info, roles, etc.
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
+            )
+        except JWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+            )
 
-    return response.json()["access_token"]
+    async def get_admin_token(self):
+        """Get admin access token from Keycloak"""
+        data = {
+            "client_id": kcsettings.KEYCLOAK_CLIENT_ID,
+            "client_secret": kcsettings.KEYCLOAK_CLIENT_SECRET,
+            "username": kcsettings.KEYCLOAK_USERNAME,
+            "password": kcsettings.KEYCLOAK_PASSWORD,
+            "grant_type": "password",
+        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        async with httpx.AsyncClient() as client:
+            response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL, data=data, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get admin token")
+        return response.json()["access_token"]
 
+    async def trigger_email_action(self, user_id: str, action: str, token: str, redirect_uri: str = None):
+        """
+        Triggers Keycloak to send an email for a specific action.
+        Actions: 'UPDATE_PASSWORD', 'UPDATE_EMAIL', 'VERIFY_EMAIL'
+        """
+        params = {
+            "client_id": kcsettings.KEYCLOAK_CLIENT_ID
+        }
+        if redirect_uri:
+            params["redirectUri"] = redirect_uri
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.put(
+                    kcsettings.KEYCLOAK_EMAIL_ACTIONS_URL(user_id),
+                    json=[action], # List of actions to trigger
+                    headers={"Authorization": f"Bearer {token}"},
+                    params=params
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to trigger email action: {str(e)}")
+        
+    async def get_user_id_by_email(self, email: str, token: str):
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    kcsettings.KEYCLOAK_USERS_URL(),
+                    params={"email": email, "exact": True},
+                    headers={"Authorization": f"Bearer {token}"}
+                )
+                users = resp.json()
+                if not users:
+                    return None
+                return users[0]["id"]
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to get user by email: {str(e)}")
 
-def get_jwks():
-    global JWKS_CACHE
-    if JWKS_CACHE:
-        return JWKS_CACHE
-    jwks_url = f"{KEYCLOAK_URL}/realms/{REALM}/protocol/openid-connect/certs"
-    JWKS_CACHE = requests.get(jwks_url).json()
-    return JWKS_CACHE
+    # Additional admin functions, maybe used in the future:
+    async def reset_password(self, user_id: str, new_password: str, token: str):
+        payload = {
+            "type": "password",
+            "value": new_password,
+            "temporary": False
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.put(
+                    kcsettings.KEYCLOAK_RESET_PASSWORD_URL(user_id),
+                    json=payload,
+                    headers={"Authorization": f"Bearer {token}"}
+                )
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to reset password: {str(e)}")
 
-
-def verify_token(token: str):
-    """Verifies a JWT access token from Keycloak"""
-    jwks = get_jwks()
-    try:
-        unverified_header = jwt.get_unverified_header(token)
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token header"
-        )
-
-    # Find the public key with the same 'kid'
-    key = None
-    for k in jwks["keys"]:
-        if k["kid"] == unverified_header["kid"]:
-            key = k
-            break
-
-    if not key:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Public key not found"
-        )
-
-    try:
-        payload = jwt.decode(
-            token,
-            key,
-            algorithms=["RS256"],
-            audience=CLIENT_ID,
-            options={"verify_aud": False},
-        )
-        return payload  # contains user info, roles, etc.
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
-        )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
+    async def update_email(self, user_id: str, new_email: str, token: str):
+        payload = {
+            "email": new_email,
+            "emailVerified": True 
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.put(
+                    kcsettings.KEYCLOAK_USERS_URL(user_id),
+                    json=payload,
+                    headers={"Authorization": f"Bearer {token}"}
+                )
+        except httpx.HTTPError as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update email: {str(e)}")
+        
+kc_admin = KeycloakAdmin()
