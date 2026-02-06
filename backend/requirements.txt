@@ -150,3 +150,7 @@ uvicorn==0.38.0
 werkzeug==3.1.4
 wrapt==2.0.1
 xlsxwriter==3.2.9
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
