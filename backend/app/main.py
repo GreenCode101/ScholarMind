@@ -4,7 +4,7 @@ from app.routers.v1 import auth, doc, user
 from app.core.security import setup_middlewares
 from app.core.logger import configure_logging, LogLevels
 from app.core.rate_limiter import limiter
-
+from dotenv import load_dotenv
 
 configure_logging(LogLevels.info)
 logger = logging.getLogger("app")
@@ -20,6 +20,8 @@ app = FastAPI(
 )
 app.state.limiter = limiter
 setup_middlewares(app)
+
+load_dotenv()
 
 # --- VERSION 1 SETUP ---
 v1_router = APIRouter(prefix="/v1")
