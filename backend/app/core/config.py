@@ -18,22 +18,19 @@ class KeycloakSettings(BaseSettings):
         return f"{self.KEYCLOAK_URL}/realms/{self.KEYCLOAK_REALM}/protocol/openid-connect/logout"
     
     @property
+    def KEYCLOAK_JWK_URL(self):
+        return f"{self.KEYCLOAK_URL}/realms/{self.KEYCLOAK_REALM}/protocol/openid-connect/certs"
+    
+    def KEYCLOAK_EMAIL_ACTIONS_URL(self, user_id):
+        return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users/{user_id}/execute-actions-email"
+    
+    def KEYCLOAK_RESET_PASSWORD_URL(self, user_id):
+        return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users/{user_id}/reset-password"
+    
     def KEYCLOAK_USERS_URL(self, user_id=None):
         if user_id:
             return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users/{user_id}"
         return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users"
-    
-    @property
-    def KEYCLOAK_JWK_URL(self):
-        return f"{self.KEYCLOAK_URL}/realms/{self.KEYCLOAK_REALM}/protocol/openid-connect/certs"
-    
-    @property
-    def KEYCLOAK_EMAIL_ACTIONS_URL(self, user_id):
-        return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users/{user_id}/execute-actions-email"
-    
-    @property
-    def KEYCLOAK_RESET_PASSWORD_URL(self, user_id):
-        return f"{self.KEYCLOAK_URL}/admin/realms/{self.KEYCLOAK_REALM}/users/{user_id}/reset-password"
         
 
 kcsettings = KeycloakSettings()

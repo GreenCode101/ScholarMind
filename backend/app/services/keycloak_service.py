@@ -14,7 +14,7 @@ class KeycloakAdmin:
         if self.JWKS_CACHE:
             return self.JWKS_CACHE
         async with httpx.AsyncClient() as client:
-            response = await client.get(kcsettings.KEYCLOAK_JWK_URL())
+            response = await client.get(kcsettings.KEYCLOAK_JWK_URL)
         self.JWKS_CACHE = response.json()
         return self.JWKS_CACHE
     
@@ -58,7 +58,7 @@ class KeycloakAdmin:
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
             )
 
-    async def get_admin_token():
+    async def get_admin_token(self):
         """Get admin access token from Keycloak"""
         data = {
             "client_id": kcsettings.KEYCLOAK_CLIENT_ID,
@@ -69,7 +69,7 @@ class KeycloakAdmin:
         }
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         async with httpx.AsyncClient() as client:
-            response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL(), data=data, headers=headers)
+            response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL, data=data, headers=headers)
         if response.status_code != 200:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get admin token")
         return response.json()["access_token"]
