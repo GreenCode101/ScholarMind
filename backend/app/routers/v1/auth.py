@@ -52,12 +52,12 @@ async def login(input_data: UserLogin, request: Request):
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL(), data=data, headers=headers)
+        response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL, data=data, headers=headers)
 
     if response.status_code != 200:
         logger.warning(f"[{req_id}] Failed login for email {email}: {response.text}")
         return JSONResponse(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             content=LoginError(message="Invalid credentials").model_dump(),
         )
 
@@ -86,7 +86,7 @@ async def signup(input_data: UserCreate, request: Request):
     logger.info(f"[{req_id}] Signup attempt for username: {username}, email: {email}")
 
     try:
-        token = kc_admin.get_admin_token()
+        token = await kc_admin.get_admin_token()
 
         # ----------- Create the user -----------
         user_data = {
@@ -131,7 +131,7 @@ async def signup(input_data: UserCreate, request: Request):
 
         # ----------- Send verification email -----------
         redirect_uri = f"{BASE_HOSTNAME}/auth/login?verified=true"
-        kc_admin.trigger_email_action(user_id, "VERIFY_EMAIL", token, redirect_uri)
+        await kc_admin.trigger_email_action(user_id, "VERIFY_EMAIL", token, redirect_uri)
         logger.info(
             f"[{req_id}] Successfully created user {username} with ID {user_id}. Verification email sent."
         )
@@ -158,7 +158,6 @@ async def signup(input_data: UserCreate, request: Request):
                 Refresh the access token using a valid refresh token.
                 """,
                 )
-@limiter.limit("5/minute")
 async def refresh_token(refresh_token: str = Body(..., embed=True)):
     data = {
         "client_id": kcsettings.KEYCLOAK_CLIENT_ID,
@@ -170,7 +169,7 @@ async def refresh_token(refresh_token: str = Body(..., embed=True)):
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL(), data=data, headers=headers)
+            response = await client.post(kcsettings.KEYCLOAK_TOKEN_URL, data=data, headers=headers)
 
         if response.status_code != 200:
             return JSONResponse(
@@ -196,7 +195,6 @@ async def refresh_token(refresh_token: str = Body(..., embed=True)):
                 Logout a user by invalidating their refresh token.
                 """,
 )
-@limiter.limit("5/minute")
 async def logout(refresh_token: str = Body(..., embed=True)):
     data = {
         "client_id": kcsettings.KEYCLOAK_CLIENT_ID,
@@ -207,7 +205,7 @@ async def logout(refresh_token: str = Body(..., embed=True)):
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(kcsettings.KEYCLOAK_LOGOUT_URL(), data=data, headers=headers)
+            response = await client.post(kcsettings.KEYCLOAK_LOGOUT_URL, data=data, headers=headers)
 
         if response.status_code != 204:
             return JSONResponse(
@@ -226,7 +224,7 @@ async def logout(refresh_token: str = Body(..., embed=True)):
             content={"message": "Failed to logout"},
         )
 
-router.post(
+@router.post(
     "/password-reset/request",
     status_code=status.HTTP_200_OK,
     tags=["Authentication"],
@@ -234,7 +232,8 @@ router.post(
     description="""
                 Request a password reset email to be sent to the user.
                 """,)
-async def request_password_reset(email: str = Body(..., embed=True)):
+@limiter.limit("5/minute")
+async def request_password_reset(request: Request, email: str = Body(..., embed=True)):
     try:
         token = await kc_admin.get_admin_token()
         user_id = await kc_admin.get_user_id_by_email(email, token)

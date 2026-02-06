@@ -1,24 +1,22 @@
-from fastapi import Request, Response, HTTPException, Header
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Request, Response, HTTPException, Header, status
 from starlette.middleware.cors import CORSMiddleware
 from app.core.context import request_id_ctx
-from app.services.keycloak_service import verify_token
+from app.services.keycloak_service import kc_admin
 import uuid
 import logging
 import time
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 logger = logging.getLogger("app.core.security")
 REQUEST_ID_HEADER = "X-Request-ID"
 
 
-def get_current_user(authorization: str = Header(...)):
+async def get_current_user(authorization: str = Header(...)):
     """Extract and verify Bearer token"""
     if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing Bearer token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Bearer token")
     token = authorization.split(" ")[1]
-    payload = verify_token(token)
+    payload = await kc_admin.verify_token(token)
     return payload
 
 
