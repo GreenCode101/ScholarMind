@@ -10,6 +10,8 @@ on:
 jobs:
   check-for-env-file:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,6 +31,8 @@ jobs:
   scan:
     name: gitleaks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
