@@ -55,11 +55,7 @@ app.add_middleware(RequestIdMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 origins = [
-    "http://localhost:3000",      # Common for React/Next.js
-    "http://localhost:5173",      # Common for Vite/Vue
-    "http://127.0.0.1:5500",      # Common for VS Code Live Server
-    "https://accommodative-dusti-subpetiolate.ngrok-free.app",
-    "null" 
+    "*",
 ]
 app.add_middleware(
     CORSMiddleware,
