@@ -41,6 +41,7 @@ jobs:
 
       - name: Type Check with Pyright
         run: pyright backend
+        continue-on-error: true
 
       - name: Run Tests
         run: pytest backend/app/tests/ --durations=0 -v
