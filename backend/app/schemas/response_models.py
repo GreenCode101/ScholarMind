@@ -10,7 +10,7 @@ class LoginSuccess(BaseModel):
         json_schema_extra = {
             "example": {
                 "message": "Login successful",
-                "session_id": "************-****-****-****-************"
+                "session_id": "************-****-****-****-************",
             }
         }
 

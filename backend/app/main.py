@@ -1,6 +1,10 @@
 from fastapi import FastAPI, APIRouter
 from app.routers.v1 import auth, user
-from app.core.middleware import PhantomTokenMiddleware, RequestIdMiddleware, LoggingMiddleware
+from app.core.middleware import (
+    PhantomTokenMiddleware,
+    RequestIdMiddleware,
+    LoggingMiddleware,
+)
 from app.core.logger import configure_logging, LogLevels
 from app.core.rate_limiter import limiter
 from app.core.config import redis_settings
@@ -13,9 +17,9 @@ import logging
 import httpx
 from dotenv import load_dotenv
 
-
 configure_logging(LogLevels.info)
 logger = logging.getLogger("app")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,7 +27,9 @@ async def lifespan(app: FastAPI):
     load_dotenv()
     # Initialize resources here (e.g., database connections, caches)
     logger.info(f"Connecting to Redis at {redis_settings.redis_url}")
-    db.redis_client = redis.from_url(str(redis_settings.redis_url), decode_responses=True)
+    db.redis_client = redis.from_url(
+        str(redis_settings.redis_url), decode_responses=True
+    )
     logger.info("Redis connection established")
     net.client = httpx.AsyncClient(timeout=30.0)
     logger.info("Global HTTP Client initialized with 30s timeout.")
@@ -39,6 +45,7 @@ async def lifespan(app: FastAPI):
         await net.client.aclose()
         logger.info("HTTP client closed")
     logger.info("Resources cleaned up successfully")
+
 
 app = FastAPI(
     title="ScholarMind",

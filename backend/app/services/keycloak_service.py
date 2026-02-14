@@ -148,7 +148,7 @@ class KeycloakAdmin:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to update email: {str(e)}",
             )
-    
+
     async def get_current_user(self, request: Request):
         """
         Check if the Middleware found a valid session.
@@ -156,7 +156,7 @@ class KeycloakAdmin:
         user_payload = getattr(request.state, "user", None)
         if not user_payload:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
-        
+
         # Convert Dict -> Pydantic Model
         return UserInternal(**user_payload)
 

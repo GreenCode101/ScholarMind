@@ -1,4 +1,3 @@
-import redis.asyncio as redis
+from redis.asyncio import Redis as AsyncRedis
 
-redis_client: redis.Redis = None
-
+redis_client: AsyncRedis = None # type: ignore

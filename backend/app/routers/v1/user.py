@@ -17,7 +17,7 @@ async def get_user_info(user: UserInternal = Depends(kc_admin.get_current_user))
         "user_id": user.sub,
         "email": user.email,
         "username": user.username,
-        "roles": user.roles
+        "roles": user.roles,
     }
 
 

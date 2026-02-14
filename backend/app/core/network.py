@@ -1,3 +1,3 @@
 import httpx
 
-client: httpx.AsyncClient | None = None
+client: httpx.AsyncClient = None # type: ignore

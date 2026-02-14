@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, status, Depends, Request, Body
+from fastapi import APIRouter, status, Request
 from fastapi.responses import JSONResponse
 from app.schemas.request_models import UserCreate, UserLogin, PasswordResetRequest
 from app.schemas.response_models import (
@@ -12,7 +12,6 @@ from app.core.config import kcsettings
 from app.core import database as db
 from app.core import network as net
 import logging
-import httpx
 import os
 import json
 import jwt
@@ -78,14 +77,15 @@ async def login(input_data: UserLogin, request: Request):
         "refresh_token": refresh_token,
     }
 
-    await db.redis_client.setex(f"session:{phantom_token}", refresh_ttl, json.dumps(session_data))
+    await db.redis_client.setex(
+        f"session:{phantom_token}", refresh_ttl, json.dumps(session_data)
+    )
     await db.redis_client.sadd(f"user_sessions:{user_id}", phantom_token)
     await db.redis_client.expire(f"user_sessions:{user_id}", 2592000)
 
-    return JSONResponse(content={
-            "message": "Login successful",
-            "session_id": phantom_token
-        })
+    return JSONResponse(
+        content={"message": "Login successful", "session_id": phantom_token}
+    )
 
 
 @router.post(
@@ -125,7 +125,6 @@ async def signup(input_data: UserCreate, request: Request):
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-
 
         create_user_res = await net.client.post(
             kcsettings.KEYCLOAK_USERS_URL(),
@@ -177,7 +176,6 @@ async def signup(input_data: UserCreate, request: Request):
         )
 
 
-
 @router.post(
     "/logout",
     status_code=status.HTTP_200_OK,
@@ -196,7 +194,7 @@ async def logout(request: Request):
     raw_data = await db.redis_client.get(f"session:{session_id}")
     if not raw_data:
         return JSONResponse(status_code=200, content={"message": "Already logged out"})
-    
+
     refresh_token = json.loads(raw_data)["refresh_token"]
 
     data = {
@@ -219,7 +217,10 @@ async def logout(request: Request):
 
         await db.redis_client.delete(f"session:{session_id}")
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Successfully logged out"})
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"message": "Successfully logged out"},
+        )
     except Exception as e:
         logger.error(f"[{req_id}] Error during logout: {e}")
         return JSONResponse(
@@ -228,33 +229,39 @@ async def logout(request: Request):
         )
 
 
-@router.post("/logout-all", 
-             status_code=status.HTTP_200_OK, 
-             tags=["Authentication"], 
-             summary="Logout from all devices", 
-             description="Logs out the user from all devices by invalidating all their sessions."
-             )
+@router.post(
+    "/logout-all",
+    status_code=status.HTTP_200_OK,
+    tags=["Authentication"],
+    summary="Logout from all devices",
+    description="Logs out the user from all devices by invalidating all their sessions.",
+)
 async def logout_all_devices(request: Request):
     user_id = getattr(request.state, "user_id", None)
     req_id = getattr(request.state, "request_id", "-")
     logger.info(f"[{req_id}] Attempting logout all devices for user {user_id}")
     if not user_id:
-        logger.error(f"[{req_id}] No user ID found in request state during logout all devices")
-        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Not authenticated"})
+        logger.error(
+            f"[{req_id}] No user ID found in request state during logout all devices"
+        )
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": "Not authenticated"},
+        )
 
     user_key = f"user_sessions:{user_id}"
     all_uuids = await db.redis_client.smembers(user_key)
-    
-    for uuid in all_uuids:
-        logger.info(f"[{req_id}] Deleting session {uuid} for user {user_id}")
-        await db.redis_client.delete(f"session:{uuid}")
+
+    for _uuid in all_uuids:
+        logger.info(f"[{req_id}] Deleting session {_uuid} for user {user_id}")
+        await db.redis_client.delete(f"session:{_uuid}")
     await db.redis_client.delete(user_key)
 
     logger.info(f"[{req_id}] Successfully logged out all devices for user {user_id}")
     return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={"message": "Successfully logged out all devices"},
-        )
+        status_code=status.HTTP_200_OK,
+        content={"message": "Successfully logged out all devices"},
+    )
 
 
 @router.post(
@@ -267,7 +274,9 @@ async def logout_all_devices(request: Request):
                 """,
 )
 @limiter.limit("5/minute")
-async def request_password_reset(password_reset_request: PasswordResetRequest, request: Request):
+async def request_password_reset(
+    password_reset_request: PasswordResetRequest, request: Request
+):
     req_id = getattr(request.state, "request_id", "-")
     email = password_reset_request.email
     logger.info(f"[{req_id}] Password reset request recieved")
